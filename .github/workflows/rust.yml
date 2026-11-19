@@ -1,0 +1,45 @@
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build e test (Windows)
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout del codice
+        uses: actions/checkout@v4
+
+      - name: Installa la toolchain Rust stabile
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Cache delle dipendenze
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build di debug
+        run: cargo build --verbose
+
+      - name: Test
+        run: cargo test --verbose
+
+      - name: Clippy (solo avvisi)
+        run: cargo clippy --all-targets
+
+      - name: Build release
+        run: cargo build --release --verbose
+
+      - name: Pubblica l'eseguibile
+        uses: actions/upload-artifact@v4
+        with:
+          name: discforge-cp-windows
+          path: target/release/discforge-cp.exe
+          if-no-files-found: error
